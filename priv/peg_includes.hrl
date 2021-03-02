@@ -181,10 +181,12 @@ p_scan(P, Inp, Index, Accum) ->
 -ifdef(p_string).
 -spec p_string(binary()) -> parse_fun().
 p_string(S) ->
-    Length = erlang:byte_size(S),
+    Chars = string:length(S),
     fun(Input, Index) ->
       try
-          <<S:Length/binary, Rest/binary>> = Input,
+          S = string:slice(Input, 0, Chars),
+          Length = byte_size(S),
+          <<_:Length/binary, Rest/binary>> = Input,
           {S, Rest, p_advance_index(S, Index)}
       catch
           error:{badmatch,_} -> {fail, {expected, {string, S}, Index}}
@@ -195,11 +197,13 @@ p_string(S) ->
 -ifdef(p_case_insensitive).
 -spec p_case_insensitive(binary()) -> parse_fun().
 p_case_insensitive(S) ->
-    Length = erlang:byte_size(S),
+    Chars = string:length(S),
     SLower = string:lowercase(S),
     fun(Input, Index) ->
       try
-          <<Sc:Length/binary, Rest/binary>> = Input,
+          Sc = string:slice(Input, 0, Chars),
+          Length = byte_size(Sc),
+          <<_:Length/binary, Rest/binary>> = Input,
           SLower = string:lowercase(Sc),
           {SLower, Rest, p_advance_index(S, Index)}
       catch
